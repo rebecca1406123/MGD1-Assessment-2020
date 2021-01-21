@@ -11,13 +11,52 @@ var fruitTouched = false;
 
 var Gerald = {
 x: width / 2,
-y: 485,
+y: 545,
 width: 145,
 height: 145,
 velX: 0,
 velY: 0
 };
 
+var eagle1 =
+{
+ x: Math.random() * 1500,
+ y: 20,
+ width: 150,
+ height: 150,
+ VelX: 0,
+ velY: Math.random() * 10
+}
+
+var eagle2 =
+{
+ x: Math.random() * 1500,
+ y: 20,
+ width: 150,
+ height: 150,
+ VelX: 0,
+ velY: Math.random() * 10
+}
+
+var eagle3 =
+{
+ x: Math.random() * 1500,
+ y: 20,
+ width: 150,
+ height: 150,
+ VelX: 0,
+ velY: Math.random() * 10
+}
+
+var eagle4 =
+{
+ x: Math.random() * 1500,
+ y: 20,
+ width: 150,
+ height: 150,
+ VelX: 0,
+ velY: Math.random() * 10
+}
 
 var keys = [];
 var friction = 0.8;
@@ -28,46 +67,55 @@ var eagles = [];
 
 var startTimeMS = 0.8;
 var frameX = 0;
-var frameXMax = 3;
+var frameXMax = 7;
 var frameY = 0;
-var frameYMax = 5;
+var frameYMax = 7;
 var frame = 0;
 var frameMax = 20;
 var frameTimer = 0.05;
 var frameTimeMax = 0.017;
-var spriteWidth = 40;
+var spriteWidth = 20;
 var spriteHeight = 36;
 
 var eaglesCount = 0;
 
 var GiraffeImg = new Image();
+var giraffeStillImg = new Image();
 var playImage = new Image();
 var quitImage = new Image();
 var controlsImage = new Image();
 var objectivesImage = new Image();
 var musicPauseImg = new Image();
-
+var restartImg = new Image();
+var quittingImage = new Image();
 
 var musicBtnPressed = false;
 var score = 0;
 
 var isKeyPressed = false;
 
-var buttonX = [600, 600, 50];
-var buttonY = [171, 551, 100];
-var buttonWidth = [144, 144, 144];
-var buttonHeight = [144, 144, 144];
+var buttonX = [600, 600, 1250, 600, 600];
+var buttonY = [171, 551, -5, 171, 551];
+var buttonWidth = [144, 144, 144, 144, 144];
+var buttonHeight = [144, 144, 144, 144, 144];
+
 
 
 var mouseX;
 var mouseY;
 
 var buttonClicked;
+var GObuttonClicked;
 
 var GeraldDrawn = false;
 
 var bckgrnd = new Audio('bensound-epic.wav');
 var sfx = new Audio ('bang.wav');
+
+GiraffeImg.src = 'GERALDLICK.png';
+giraffeStillImg.src = "GERALD.png";
+EagleImg.src = 'Eagle.png';
+
 
 window.addEventListener("load", function()
 {
@@ -112,10 +160,10 @@ function showMenu()
             });
 
         controlsImage.src = "controls.png";
-        ctx.drawImage(controlsImage, 100, height/2, 260, 119);
+        ctx.drawImage(controlsImage, 100, 600, 260, 119);
 
         objectivesImage.src = "objectives.png";
-        ctx.drawImage(objectivesImage, 500, height/2, 260, 119);
+        ctx.drawImage(objectivesImage, 500, 600, 260, 119);
 
 
         ctx.font = "80px Comic Sans MS";
@@ -124,13 +172,28 @@ function showMenu()
         ctx.fillText("Giraffic Park", 700, 70);
 
 
+        ctx.font = "30px Comic Sans MS";
+        ctx.fillStyle = "black";
+        ctx.textAlign = "center";
+        ctx.fillText("Instructions: ", 260, 171);
+        ctx.fillText("- Move the giraffe left and right", 260, 221);
+        ctx.fillText("- Avoid the eagles", 260, 251);
+        ctx.fillText("- Avoiding eagles gets you points!", 260, 281);
+        ctx.fillText("- Touching an eagle means game over!", 260, 311);
 
 
-    canvas.addEventListener("mousemove", checkPos);
-    canvas.addEventListener("mouseup", checkClick);
+        ctx.fillText("Controls: ", 1100, 451);
+        ctx.fillText("- Left arrow: moves giraffe left ", 1100, 501);
+        ctx.fillText("- Right arrow: moves giraffe right ", 1100, 531);
+
+
+    canvas.addEventListener("mousemove", checkIntroPos);
+    canvas.addEventListener("mouseup", checkIntroClick);
+
+
 };
 
-function checkPos(event)
+function checkIntroPos(event)
 {
     coords = canvas.relMouseCoords(event);
     mouseX = coords.x;
@@ -160,15 +223,24 @@ HTMLCanvasElement.prototype.relMouseCoords = function (event)
 
     return {x:canvasX, y:canvasY}
 }
+     document.body.addEventListener("keydown", function (e) {
+            keys[e.keyCode] = true;
+            isKeyPressed = true;
+        });
 
-function checkClick(mouseEvent)
+        document.body.addEventListener("keyup", function (e) {
+            keys[e.keyCode] = false;
+            isKeyPressed = false;
+        });
+
+function checkIntroClick(mouseEvent)
 {
     if (mouseX > buttonX[0] && mouseX < (buttonX[0] + buttonWidth[0]))
     {
     console.log("yes");
         if (mouseY > buttonY[0] && mouseY < (buttonY[0] + buttonHeight[0]))
         {
-     //   sfx.play();
+        sfx.play();
         console.log("The start button has been pressed");
             buttonClicked = 1;
             startGame();
@@ -181,7 +253,8 @@ if (mouseX > buttonX[1] && mouseX < (buttonX[1] + buttonWidth[1]))
     {
     console.log("the quit button has been pressed");
         buttonClicked = 2;
-        quitGame();
+       // quitGame();
+       gameOver();
     }
 }
 
@@ -191,7 +264,7 @@ if (mouseX > buttonX[2] && mouseX < (buttonX[2] + buttonWidth[2]))
     {
         if (musicBtnPressed == true)
         {
-           bckgrnd.pause();
+           bckgrnd.stop();
            musicBtnPressed = false;
         }
         else
@@ -199,8 +272,8 @@ if (mouseX > buttonX[2] && mouseX < (buttonX[2] + buttonWidth[2]))
           bckgrnd.play();
           musicBtnPressed = true;
         }
-    console.log("the quit button has been pressed");
-        buttonClicked = 3;
+    //console.log("the quit button has been pressed");
+        buttonClicked = 0;
 
     }
 }
@@ -208,11 +281,13 @@ if (mouseX > buttonX[2] && mouseX < (buttonX[2] + buttonWidth[2]))
 
 if (buttonClicked > 0)
 {
-    canvas.removeEventListener("mousemove", checkPos);
-    canvas.removeEventListener("mouseup", checkClick);
+    canvas.removeEventListener("mousemove", checkIntroPos);
+    canvas.removeEventListener("mouseup", checkIntroClick);
 }
 
 };
+
+
 
 function startGame()
 {
@@ -221,15 +296,15 @@ function startGame()
           canvasX = canvas.width/2;
           canvasY = canvas.height/2;
 
-           GiraffeImg.src = 'GERALD.png';
-           EagleImg.src = 'Eagle.png';
 
         ctx.font = "30px Comic Sans MS";
         ctx.fillStyle = "red";
         ctx.textAlign = "center";
-        ctx.fillText("Score: ", 50, 50);
+        ctx.fillText("Score: " + score, 50, 50);
         //ctx.fillText("place: " + Gerald.x + ", " + Gerald.y, canvas.width/2, canvas.height/2 + 40);
 
+//ctx.rect(Gerald.x, Gerald.y, Gerald.width, Gerald.height);
+//  ctx.drawImage(GiraffeImg, Gerald.x, Gerald.y, Gerald.width, Gerald.height);
 
      window.addEventListener('resize', resizeCanvas, false);
 
@@ -240,30 +315,10 @@ function startGame()
 
      document.body.addEventListener("touchcancel", touchUp, false);
 
-     document.body.addEventListener("keydown", function (e) {
-            keys[e.keyCode] = true;
-            isKeyPressed = true;
-        });
-
-        document.body.addEventListener("keyup", function (e) {
-            keys[e.keyCode] = false;
-            isKeyPressed = false;
-        });
-
-     //ctx.drawImage(GiraffeImg, Gerald.x, Gerald.y, Gerald.width, Gerald.height);
-
-     requestAnimationFrame(gameLoop);
-
-/*
 
 
-        ctx.font = "30px Comic Sans MS";
-        ctx.fillStyle = "red";
-        ctx.textAlign = "center";
-        ctx.fillText("Score: " + score, 100, 20);
-*/
 
-    eagles.push({
+/*    eagles.push({
       x: Math.random() * 1500,
       y: 20,
       width: 150,
@@ -279,8 +334,8 @@ function startGame()
           height: 150,
           VelX: 0,
           velY: Math.random() * 10
-        });
-
+        });*/
+/*
             eagles.push({
               x: Math.random() * 1500,
               y: 20,
@@ -297,15 +352,21 @@ function startGame()
                   height: 150,
                   VelX: 0,
                   velY: Math.random() * 10
-                });
-
+                });*/
 
      resizeCanvas();
   //}
 //      ctx.drawImage(GiraffeImg, Gerald.x, Gerald.y, Gerald.width, Gerald.height);
 
+//moveSelection(event);
+
     update();
-    gameLoop();
+   gameLoop();
+
+   EagleDraw(eagle1);
+   EagleDraw(eagle2);
+   EagleDraw(eagle3);
+   EagleDraw(eagle4);
 
   return;
 }
@@ -327,6 +388,7 @@ function update(delta)
 
 }
 
+
 function gameLoop()
 {
    console.log("gameLoop");
@@ -335,19 +397,29 @@ function gameLoop()
    update(elapsed);
 
        startTimeMS = Date.now();
+
+   if (keys[39]) {
+     ctx.drawImage(GiraffeImg,spriteWidth * frameX, spriteHeight * frameY, spriteWidth, spriteHeight, Gerald.x, Gerald.y, Gerald.width, Gerald.height);
+   Gerald.velX = Gerald.velX + 5;
+ console.log("I'm meant to be moving, but I'm being cheeky lol");
+   }
+
+
+   if (keys[37])
+   {
+     ctx.drawImage(GiraffeImg,spriteWidth * frameX, spriteHeight * frameY, spriteWidth, spriteHeight, Gerald.x, Gerald.y, Gerald.width, Gerald.height);
+     Gerald.velX = Gerald.velX - 5;
+     console.log("I'm meant to be moving, but I'm being cheeky lol");
+   }
+
        //requestAnimationFrame(gameLoop);
        //render();
 
-
-   if (keys[39] && Gerald.x < (canvas.width - Gerald.width + 70)) {
-   Gerald.velX = Gerald.velX + 0.5;
-
-   }
+   //  ctx.drawImage(GiraffeImg, Gerald.x, Gerald.y, Gerald.width, Gerald.height);
 
 
-   if (keys[37] && Gerald.x > Gerald.width) {
-   Gerald.velX = Gerald.velX - 0.5;
-   }
+
+
 
 /*
    if (keys[39] && Gerald.x < (canvas.width - Gerald.width + 70)) {
@@ -364,7 +436,7 @@ function gameLoop()
 */
 
 
-  score = score + 1;
+  //score = score + 1;
 
  // gameTimer += 1;
 
@@ -398,25 +470,33 @@ gameTimer == 0;
 function update()
 {
   // ctx.clearRect(0, 20, width, height);
+ctx.drawImage(giraffeStillImg, Gerald.x, Gerald.y, Gerald.width, Gerald.height);
 
 
-//ctx.drawImage(GiraffeImg, Gerald.x, Gerald.y, Gerald.width, Gerald.height);
 
 
-for (var i = 0; i < eagles.length; i++)
-  {
+//requestAnimationFrame(update);
 
-     ctx.rect(eagles[i].x, eagles[i].y, eagles[i].width, eagles[i].height, eagles[i].velY);
+}
 
-    eagles[i].velY *= eaglesFriction;
-    eagles[i].y += eagles[i].velY;
+function EagleDraw(eagles)
+{
+     console.log("I am running lol");
+     ctx.rect(eagles.x, eagles.y, eagles.width, eagles.height, eagles.velY);
 
-     animationFrame();
-     ctx.drawImage(EagleImg, spriteWidth * frameX, spriteHeight * frameY, spriteWidth, spriteHeight, eagles[i].x, eagles[i].y, eagles[i].width, eagles[i].height);
+           EagleImg.src = 'Eagle.png';
 
-      requestAnimationFrame(gameLoop);
+//requestAnimationFrame(update);
 
-       var dir = colCheck(Gerald, eagles[i]);
+    //eagles.velY *= eaglesFriction;
+    eagles.y += eagles.velY;
+
+     //animationFrame();
+     ctx.drawImage(EagleImg,eagles.x, eagles.y, eagles.width, eagles.height);
+
+      //requestAnimationFrame(gameLoop);
+
+       var dir = colCheck(Gerald, eagles);
 
        if (dir === "l" || dir === "r")
        {
@@ -430,64 +510,82 @@ for (var i = 0; i < eagles.length; i++)
               gameOver();
            }
 
-       if (eagles[i].y <= 480)
+       if (eagles.y <= 480)
        {
-       eagles[i].y = 20;
+       eagles.y = 20;
+        score += 1;
        }
 
     }
 
-/*
-for (var i = 0; i < eagles.length; i++)
-  {
-        sfx.play();
 
 
-     ctx.rect(eagles[i].x, eagles[i].y, eagles[i].width, eagles[i].height, eagles[i].velY);
-
-    eagles[i].velY *= eaglesFriction;
-    eagles[i].y += eagles[i].velY;
-
-     //animationFrame();
-     ctx.drawImage(EagleImg, spriteWidth * frameX, spriteHeight * frameY, spriteWidth, spriteHeight, eagles[i].x, eagles[i].y, eagles[i].width, eagles[i].height);
-
-//      requestAnimationFrame(eagles[i]);
-
-       var dir = colCheck(Gerald, eagles[i]);
-
-       if (dir === "l" || dir === "r")
-       {
-         Gerald.velX = 0;
-         gameOver();
-       }
-
-       else if (dir === "t" || dir === "b")
-       {
-         Gerald.velY = 0;
-         gameOver();
-       }
-
-       if (eagles[i].y <= 480)
-       {
-       eagles[i].y = 20;
-       }
-
-    }
-*/
-
-  // Gerald.velX *= friction;
-  // Gerald.velY *= friction;
-//   Gerald.x += Gerald.velX;
-   //Gerald.y += Gerald.velY;
-
-//     ctx.drawImage(GiraffeImg, Gerald.x, Gerald.y, Gerald.width, Gerald.height);
-
-    //requestAnimationFrame();
-    requestAnimationFrame(update);
-}
 
 function gameOver()
 {
+  restartImg.src = "playbutton.png";
+      restartImg.addEventListener('load', e =>
+      {
+        ctx.drawImage(restartImg, buttonX[3], buttonY[3], buttonWidth[3], buttonHeight[3]);
+      });
+
+      quittingImage.src = "quitbutton.png";
+      quitImage.addEventListener('load', e =>
+      {
+             ctx.drawImage(quitting, buttonX[4], buttonY[4] - 80, buttonWidth[4], buttonHeight[4]);
+      });
+
+
+          ctx.font = "80px Comic Sans MS";
+          ctx.fillStyle = "red";
+          ctx.textAlign = "center";
+          ctx.fillText("Score: " + score, 700, 70);
+
+
+      canvas.addEventListener("mousemove", checkGOPos);
+      canvas.addEventListener("mouseup", checkGOClick);
+}
+
+function checkGOPos()
+{
+    coords = canvas.relMouseCoords(event);
+    mouseX = coords.x;
+    mouseY = coords.y;
+}
+
+function checkGOClick(mouseEvent)
+{
+    if (mouseX > buttonX[3] && mouseX < (buttonX[3] + buttonWidth[3]))
+    {
+    console.log("yes");
+        if (mouseY > buttonY[3] && mouseY < (buttonY[3] + buttonHeight[3]))
+        {
+     //   sfx.play();
+        console.log("The start button has been pressed");
+            GObuttonClicked = 1;
+            score = 0;
+            startGame();
+        }
+    }
+
+if (mouseX > buttonX[4] && mouseX < (buttonX[4] + buttonWidth[4]))
+{
+    if (mouseY > buttonY[4] && mouseY < (buttonY[4] + buttonHeight[4]))
+    {
+    console.log("the quit button has been pressed");
+        GObuttonClicked = 2;
+        quitGame();
+    }
+}
+
+
+
+
+if (GObuttonClicked > 0)
+{
+    canvas.removeEventListener("mousemove", checkGOPos);
+    canvas.removeEventListener("mouseup", checkGOClick);
+}
 
 }
 
